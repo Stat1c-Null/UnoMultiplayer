@@ -1,29 +1,26 @@
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class NetworkPlayerController : NetworkBehaviour
 {
-  public GameObject CreateSession;
-  public GameObject JoinSession;
   private NetworkManager networkManager;
 
   private void Start()
   {
-    //CreateSession = GameObject.FindWithTag("CreateSession");
-    //JoinSession = GameObject.FindWithTag("JoinSession");
     networkManager = NetworkManager.Singleton;
     // Listen for client disconnects
     networkManager.OnClientDisconnectCallback += OnClientDisconnected;
   }
 
-    private void OnDestroy()
+  private void OnDestroy()
+  {
+    if (networkManager != null)
     {
-      if (networkManager != null)
-      {
-        networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
-      }
+      networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
     }
+  }
 
   // Called when ANY client disconnects (including host)
   private void OnClientDisconnected(ulong clientId)
@@ -33,17 +30,19 @@ public class NetworkPlayerController : NetworkBehaviour
     {
       Debug.Log("Host has left the session. Returning to main menu...");
 
-
     }
-      
+
     // Force all clients back to the main menu scene
     if (!networkManager.IsHost) // only run this on clients
     {
       Debug.Log("Returning to main menu...");
-      CreateSession.SetActive(true);
-      JoinSession.SetActive(true); 
+      NetworkManager.Singleton.Shutdown();
+      SceneManager.LoadScene(
+          "SampleScene", 
+          UnityEngine.SceneManagement.LoadSceneMode.Single
+      );
     }
-    }
+  }
 
     public void LeaveSession()
     {
@@ -54,8 +53,6 @@ public class NetworkPlayerController : NetworkBehaviour
       else
       {
         networkManager.Shutdown();
-        CreateSession.SetActive(true);
-        JoinSession.SetActive(true); 
       }
     }
 }
