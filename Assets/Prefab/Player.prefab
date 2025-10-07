@@ -127,5 +127,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  CreateSession: {fileID: 0}
-  JoinSession: {fileID: 0}
