@@ -5,7 +5,6 @@ using Unity.Netcode;
 public class ReadyUpButton : MonoBehaviour
 {
     private Button button;
-    private NetworkPlayerController localPlayer;
 
     private void Start()
     {
@@ -13,25 +12,19 @@ public class ReadyUpButton : MonoBehaviour
         button.onClick.AddListener(OnReadyClicked);
     }
 
-    public void OnReadyClicked()
+    private void OnReadyClicked()
     {
-        Debug.Log("Ready button clicked");
-        if (localPlayer == null)
+        // Find the local player
+        foreach (var player in FindObjectsOfType<NetworkPlayerController>())
         {
-            foreach (var obj in FindObjectsOfType<NetworkPlayerController>())
+            if (player.IsOwner) // Only local player owns their player object
             {
-                if (obj.IsOwner)
-                {
-                    localPlayer = obj;
-                    break;
-                }
+                // Toggle ready state through the ServerRpc
+                player.SetReadyServerRpc(!player.IsReady.Value);
+                return;
             }
         }
 
-        if (localPlayer != null)
-        {
-            bool newState = !localPlayer.IsReady.Value;
-            localPlayer.SetReadyServerRpc(newState);
-        }
+        Debug.LogWarning("⚠️ Could not find local player to set ready state.");
     }
 }

@@ -8,7 +8,7 @@ public class NetworkPlayerController : NetworkBehaviour
 {
   private NetworkManager networkManager;
 
-  // 🔹 Player name & ready state
+  // Player name & ready state
   public NetworkVariable<bool> IsReady = new NetworkVariable<bool>(
       false,
       NetworkVariableReadPermission.Everyone,
@@ -41,7 +41,7 @@ public class NetworkPlayerController : NetworkBehaviour
       IsReady.OnValueChanged -= OnReadyChanged;
   }
 
-  // 🔹 Called when any client disconnects (including host)
+  // Called when any client disconnects (including host)
   private void OnClientDisconnected(ulong clientId)
   {
       // If the one who disconnected is the HOST (server)
@@ -59,29 +59,32 @@ public class NetworkPlayerController : NetworkBehaviour
       }
   }
 
-  // 🔹 Called when player clicks "Ready Up"
+  // Called when player clicks "Ready Up"
   [ServerRpc(RequireOwnership = false)]
   public void SetReadyServerRpc(bool ready)
   {
       IsReady.Value = ready;
   }
 
-  // 🔹 Update color of player name in UI when ready state changes
+  // Update color of player name in UI when ready state changes
   private void OnReadyChanged(bool oldValue, bool newValue)
-  {
-      var ui = FindObjectOfType<SessionPlayerListUI>();
-      if (ui)
-          ui.UpdatePlayerReadyState(OwnerClientId, newValue);
+{
+    var ui = FindObjectOfType<SessionPlayerListUI>();
+    if (ui)
+    {
+        ui.UpdatePlayerReadyState(OwnerClientId, newValue);
+    }
+        
   }
 
-  // 🔹 Public function to call from ReadyUp button
+  // Public function to call from ReadyUp button
   public void ToggleReady()
   {
       if (!IsOwner) return;
       SetReadyServerRpc(!IsReady.Value);
   }
 
-  // 🔹 Public function for "Leave Session" button
+  // Public function for "Leave Session" button
   public void LeaveSession()
   {
       Debug.Log("Leaving session...");

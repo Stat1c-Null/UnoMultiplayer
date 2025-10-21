@@ -1504,7 +1504,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 703769423}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29be1f0f1d5d4a3d88ef53e9fb7093c3, type: 3}
   m_Name: 
@@ -1565,7 +1565,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 721260183}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a889c3ae8f2491dbf4709fd54623336, type: 3}
   m_Name: 
@@ -1612,8 +1612,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b609ad142a8407e41b9d3cafa6439a26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerListContainer: {fileID: 0}
-  playerNamePrefab: {fileID: 0}
 --- !u!1 &727386506
 GameObject:
   m_ObjectHideFlags: 0
