@@ -12,7 +12,7 @@ public class NetworkPlayerController : NetworkBehaviour
   public NetworkVariable<bool> IsReady = new NetworkVariable<bool>(
       false,
       NetworkVariableReadPermission.Everyone,
-      NetworkVariableWritePermission.Owner
+      NetworkVariableWritePermission.Server
   );
 
   [SerializeField] private string playerName;
@@ -74,7 +74,6 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         ui.UpdatePlayerReadyState(OwnerClientId, newValue);
     }
-        
   }
 
   // Public function to call from ReadyUp button
@@ -84,7 +83,7 @@ public class NetworkPlayerController : NetworkBehaviour
       SetReadyServerRpc(!IsReady.Value);
   }
 
-  // Public function for "Leave Session" button
+  // Public function for "Leave Session" button 
   public void LeaveSession()
   {
       Debug.Log("Leaving session...");

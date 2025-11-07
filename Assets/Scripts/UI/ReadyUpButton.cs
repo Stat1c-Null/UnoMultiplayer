@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
+using System.Diagnostics;
 
 public class ReadyUpButton : MonoBehaviour
 {
@@ -25,6 +26,6 @@ public class ReadyUpButton : MonoBehaviour
             }
         }
 
-        Debug.LogWarning("⚠️ Could not find local player to set ready state.");
+        //Debug.LogWarning("⚠️ Could not find local player to set ready state.");
     }
 }

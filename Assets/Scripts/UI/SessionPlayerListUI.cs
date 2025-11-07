@@ -17,7 +17,7 @@ public class SessionPlayerListUI : MonoBehaviour
 
         if (playerListContainer == null)
         {
-            Debug.LogError("❌ Player list container not found in hierarchy!");
+            Debug.LogError("Player list container not found in hierarchy!");
             return;
         }
 
@@ -30,7 +30,7 @@ public class SessionPlayerListUI : MonoBehaviour
         }
         else
         {
-            Debug.LogError("❌ Session Player List Item prefab not found under Content!");
+            Debug.LogError("Session Player List Item prefab not found under Content!");
         }
     }
 
@@ -42,7 +42,7 @@ public class SessionPlayerListUI : MonoBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += AddPlayer;
         NetworkManager.Singleton.OnClientDisconnectCallback += RemovePlayer;
 
-        // 🧠 Populate the list with any already-connected clients
+        // Populate the list with any already-connected clients
         foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
             AddPlayer(client.ClientId);
@@ -78,7 +78,7 @@ public class SessionPlayerListUI : MonoBehaviour
 
         if (text == null)
         {
-            Debug.LogError("❌ Could not find 'Player Name' text inside list item prefab.");
+            Debug.LogError("Could not find 'Player Name' text inside list item prefab.");
             return;
         }
 
