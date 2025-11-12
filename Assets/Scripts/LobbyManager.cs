@@ -1,15 +1,15 @@
 using Unity.Netcode;
 using UnityEngine;
 using Unity.Services.Multiplayer;
+using System.Collections.Generic;
 
 public class LobbyManager : MonoBehaviour
 {
     public string gameSceneName = "GameRoom";
+    public string playerName;
 
     public void OnCreateSessionClicked()
     {
-        // Session is already created by Multiplayer Center.
-        // Just wait for NGO to finish starting.
         NetworkManager.Singleton.OnServerStarted += HandleServerStarted;
     }
 
@@ -20,7 +20,7 @@ public class LobbyManager : MonoBehaviour
         if (NetworkManager.Singleton.IsServer)
         {
             NetworkManager.Singleton.SceneManager.LoadScene(
-                gameSceneName, 
+                gameSceneName,
                 UnityEngine.SceneManagement.LoadSceneMode.Single
             );
         }

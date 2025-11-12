@@ -1550,6 +1550,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameSceneName: GameRoom
+  playerName: 
 --- !u!1 &758556364
 GameObject:
   m_ObjectHideFlags: 0

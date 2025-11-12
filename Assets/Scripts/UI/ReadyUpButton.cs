@@ -25,7 +25,5 @@ public class ReadyUpButton : MonoBehaviour
                 return;
             }
         }
-
-        //Debug.LogWarning("⚠️ Could not find local player to set ready state.");
     }
 }
