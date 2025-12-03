@@ -2,11 +2,19 @@ using Unity.Netcode;
 using UnityEngine;
 using Unity.Services.Multiplayer;
 using System.Collections.Generic;
+using TMPro;
 
 public class LobbyManager : MonoBehaviour
 {
     public string gameSceneName = "GameRoom";
-    public string playerName;
+    // Instance field that can be set via the lobby UI
+    public static string playerName;
+
+    public GameObject nameInputField;
+
+    public void Start() {
+        nameInputField = GameObject.FindWithTag("PlayerNameInput");
+    }
 
     public void OnCreateSessionClicked()
     {
@@ -27,5 +35,10 @@ public class LobbyManager : MonoBehaviour
 
         // Unsubscribe so it only runs once
         NetworkManager.Singleton.OnServerStarted -= HandleServerStarted;
+    }
+
+    public void SetName()
+    {
+        playerName = nameInputField.GetComponent<TextMeshPro>().text; //TODO: Fix issue on this line
     }
 }

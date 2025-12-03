@@ -82,10 +82,39 @@ public class SessionPlayerListUI : MonoBehaviour
             return;
         }
 
-        text.text = $"Player {clientId}";
+        // Try to find the player's NetworkPlayerController so we can display their username
+        var playerController = FindPlayerController(clientId);
+        if (playerController != null)
+        {
+            text.text = playerController.GetPlayerName();
+
+            // Subscribe to name changes so UI updates if player changes their name
+            playerController.PlayerName.OnValueChanged += (oldValue, newValue) =>
+            {
+                if (playerNameTexts.TryGetValue(clientId, out var textElement))
+                {
+                    textElement.text = newValue.ToString();
+                }
+            };
+        }
+        else
+        {
+            text.text = $"Player {clientId}";
+        }
+
         text.color = Color.white;
 
         playerNameTexts[clientId] = text;
+    }
+
+    private NetworkPlayerController FindPlayerController(ulong clientId)
+    {
+        var players = FindObjectsOfType<NetworkPlayerController>();
+        foreach (var p in players)
+        {
+            if (p.OwnerClientId == clientId) return p;
+        }
+        return null;
     }
 
     private void RemovePlayer(ulong clientId)

@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Diagnostics;
+using Unity.Collections;
 
 public class NetworkPlayerController : NetworkBehaviour
 {
@@ -16,15 +17,27 @@ public class NetworkPlayerController : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    [SerializeField] private string playerName;
+    // Networked player name (server-authoritative)
+    public NetworkVariable<FixedString128Bytes> PlayerName = new NetworkVariable<FixedString128Bytes>(
+        new FixedString128Bytes("Player"),
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     private void Start()
     {
-        UnityEngine.Debug.Log(GetPlayerName());
         networkManager = NetworkManager.Singleton;
 
-        // Give player a name based on client ID
-        //playerName = "Player " + OwnerClientId;
+        // If this object is owned by the local client, tell the server our chosen lobby name
+        if (IsOwner)
+        {
+            // If LobbyManager has a chosen name, use it; otherwise fallback to client id
+            string nameToSend = LobbyManager.playerName;
+            if (string.IsNullOrEmpty(nameToSend)) {
+                nameToSend = $"Player {OwnerClientId}";
+            }
+            SetPlayerNameServerRpc(nameToSend);
+        }
 
         // Subscribe to ready-state changes
         IsReady.OnValueChanged += OnReadyChanged;
@@ -66,8 +79,14 @@ public class NetworkPlayerController : NetworkBehaviour
     public void SetReadyServerRpc(bool ready)
     {
         IsReady.Value = ready;
-        SetPlayerName("Test Name");
         UnityEngine.Debug.Log(GetPlayerName());
+    }
+
+    // Owner calls this to tell server their chosen name. Server updates NetworkVariable.
+    [ServerRpc]
+    public void SetPlayerNameServerRpc(string newName)
+    {
+        PlayerName.Value = new FixedString128Bytes(newName);
     }
 
     // Update color of player name in UI when ready state changes
@@ -90,13 +109,12 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public string GetPlayerName()
     {
-        return playerName;
+        return PlayerName.Value.ToString();
     }
 
-    public string SetPlayerName(string newName)
+    // Local convenience wrapper: owner calls this to request a name change
+    public void SetPlayerNameLocal(string newName)
     {
-        UnityEngine.Debug.Log("Player name got changed");
-        playerName = newName;
-        return playerName;
+        SetPlayerNameServerRpc(newName);
     }
 }
