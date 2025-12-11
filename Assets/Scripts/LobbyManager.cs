@@ -39,6 +39,10 @@ public class LobbyManager : MonoBehaviour
 
     public void SetName()
     {
-        playerName = nameInputField.GetComponent<TextMeshPro>().text; //TODO: Fix issue on this line
+        // The tag is on the Text child, so get the TMP_InputField from the parent
+        TMP_InputField inputField = nameInputField.GetComponentInParent<TMP_InputField>();
+
+        playerName = inputField.text;
+        Debug.Log($"Player name set to: {playerName}");
     }
 }
