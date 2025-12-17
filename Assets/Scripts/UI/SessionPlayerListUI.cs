@@ -3,12 +3,18 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using Unity.Netcode;
+using System.Linq;
 
 public class SessionPlayerListUI : MonoBehaviour
 {
     private Transform playerListContainer;
     private GameObject playerNamePrefab;
     private Dictionary<ulong, TextMeshProUGUI> playerNameTexts = new();
+    
+    [Header("UI Elements to Hide When All Ready")]
+    [SerializeField] private GameObject[] elementsToHideWhenReady = new GameObject[3];
+    
+    private bool hasCheckedReady = false;
 
     private void Awake()
     {
@@ -46,6 +52,15 @@ public class SessionPlayerListUI : MonoBehaviour
         foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
             AddPlayer(client.ClientId);
+        }
+    }
+    
+    private void Update()
+    {
+        // Continuously check ready state if we have 2+ players
+        if (!hasCheckedReady && NetworkManager.Singleton != null)
+        {
+            CheckIfAllPlayersReady();
         }
     }
 
@@ -131,6 +146,37 @@ public class SessionPlayerListUI : MonoBehaviour
         if (playerNameTexts.TryGetValue(clientId, out var text))
         {
             text.color = isReady ? Color.green : Color.white;
+        }
+    }
+    
+    private void CheckIfAllPlayersReady()
+    {
+        var allPlayers = FindObjectsOfType<NetworkPlayerController>();
+        
+        // Need at least 2 players
+        if (allPlayers.Length < 2)
+            return;
+        
+        // Check if all players are ready
+        bool allReady = allPlayers.All(player => player.IsReady.Value);
+        
+        if (allReady)
+        {
+            HideUIElements();
+            hasCheckedReady = true; // Only hide once
+        }
+    }
+    
+    private void HideUIElements()
+    {
+        Debug.Log("All players ready! Hiding UI elements.");
+        
+        foreach (var element in elementsToHideWhenReady)
+        {
+            if (element != null)
+            {
+                element.SetActive(false);
+            }
         }
     }
 }
