@@ -1658,9 +1658,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   elementsToHideWhenReady:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 738539250}
+  - {fileID: 637458612}
+  - {fileID: 721260183}
 --- !u!1 &727386506
 GameObject:
   m_ObjectHideFlags: 0
