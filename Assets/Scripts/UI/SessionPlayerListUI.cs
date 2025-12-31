@@ -163,7 +163,20 @@ public class SessionPlayerListUI : MonoBehaviour
         if (allReady)
         {
             HideUIElements();
+            NotifyGameManager();
             hasCheckedReady = true; // Only hide once
+        }
+    }
+    
+    private void NotifyGameManager()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnAllPlayersReady();
+        }
+        else
+        {
+            Debug.LogWarning("SessionPlayerListUI: GameManager.Instance not found!");
         }
     }
     
