@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour
         playerNameText.text = player.GetPlayerName();
         
         // Set cards remaining (0 for now, will be updated when card logic is implemented)
-        cardsRemainingText.text = "Cards: 0";
+        cardsRemainingText.text = player.GetPlayerCardsLeft();
         
         // Subscribe to name changes
         player.PlayerName.OnValueChanged += (oldValue, newValue) =>

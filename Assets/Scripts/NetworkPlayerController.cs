@@ -106,6 +106,10 @@ public class NetworkPlayerController : NetworkBehaviour
         networkManager.Shutdown();
         SceneManager.LoadScene("SampleScene", LoadSceneMode.Single);
     }
+    public string GetPlayerCardsLeft()
+    {
+        return "Cards Left: 0";
+    }
 
     public string GetPlayerName()
     {
