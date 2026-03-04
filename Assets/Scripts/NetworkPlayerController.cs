@@ -24,6 +24,16 @@ public class NetworkPlayerController : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    /// <summary>
+    /// How many cards this player currently holds.
+    /// Visible to everyone so opponents can see your card count, but only the server can write it.
+    /// </summary>
+    public NetworkVariable<int> CardCount = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     private void Start()
     {
         networkManager = NetworkManager.Singleton;
@@ -108,7 +118,18 @@ public class NetworkPlayerController : NetworkBehaviour
     }
     public string GetPlayerCardsLeft()
     {
-        return "Cards Left: 0";
+        return $"Cards: {CardCount.Value}";
+    }
+
+    /// <summary>
+    /// Called by CardManager on the server to update this player's visible card count.
+    /// </summary>
+    public void SetCardCount(int count)
+    {
+        if (IsServer)
+        {
+            CardCount.Value = count;
+        }
     }
 
     public string GetPlayerName()

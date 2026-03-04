@@ -13,6 +13,9 @@ public class GameManager : MonoBehaviour
     
     private Dictionary<ulong, GameObject> playerNameCards = new();
     
+    /// <summary>Reference to the CardManager on this same GameObject.</summary>
+    private CardManager cardManager;
+    
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -21,6 +24,7 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
+        cardManager = GetComponent<CardManager>();
     }
     
     /// <summary>
@@ -31,6 +35,16 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("GameManager: All players ready! Creating player name cards.");
         CreatePlayerNameCards();
+        
+        // Start dealing cards (server/host only — CardManager guards this internally)
+        if (cardManager != null)
+        {
+            cardManager.StartDealing();
+        }
+        else
+        {
+            Debug.LogError("GameManager: CardManager component not found on this GameObject!");
+        }
     }
     
     private void CreatePlayerNameCards()
@@ -106,6 +120,15 @@ public class GameManager : MonoBehaviour
             }
         };
         
+        // Subscribe to card count changes so the UI stays in sync
+        player.CardCount.OnValueChanged += (oldCount, newCount) =>
+        {
+            if (cardsRemainingText != null)
+            {
+                cardsRemainingText.text = $"Cards: {newCount}";
+            }
+        };
+        
         playerNameCards[clientId] = card;
         
         Debug.Log($"GameManager: Created name card for player {player.GetPlayerName()} (ID: {clientId})");
@@ -119,7 +142,7 @@ public class GameManager : MonoBehaviour
     {
         if (playerNameCards.TryGetValue(clientId, out GameObject card))
         {
-            Transform backboard = card.transform.Find("PlayerNameCardBackboard");
+            Transform backboard = card.transform.Find("PlayerNameBackboard");
             TextMeshProUGUI cardsRemainingText = backboard?.Find("CardsRemaining")?.GetComponent<TextMeshProUGUI>();
             
             if (cardsRemainingText != null)
