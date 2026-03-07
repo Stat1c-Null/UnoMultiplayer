@@ -266,3 +266,5 @@ MonoBehaviour:
         byte0123: 0
         byte0124: 0
         byte0125: 0
+  CardCount:
+    m_InternalValue: 0
