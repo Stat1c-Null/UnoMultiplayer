@@ -151,25 +151,28 @@ MonoBehaviour:
   - color: 1
     value: 7
     sprite: {fileID: 21300000, guid: 381441a9c959f694797931dfa29f8941, type: 3}
-  - color: 0
+  - color: 1
+    value: 8
+    sprite: {fileID: 21300000, guid: 5969ec2a2f34baa4eafe611e8874d2fc, type: 3}
+  - color: 1
     value: 9
-    sprite: {fileID: 21300000, guid: e17895c4a287d2d4381c4f567d151d7c, type: 3}
-  - color: 0
-    value: 9
-    sprite: {fileID: 21300000, guid: e17895c4a287d2d4381c4f567d151d7c, type: 3}
-  - color: 0
-    value: 9
-    sprite: {fileID: 21300000, guid: e17895c4a287d2d4381c4f567d151d7c, type: 3}
-  - color: 0
-    value: 9
-    sprite: {fileID: 21300000, guid: e17895c4a287d2d4381c4f567d151d7c, type: 3}
-  - color: 0
-    value: 9
-    sprite: {fileID: 21300000, guid: e17895c4a287d2d4381c4f567d151d7c, type: 3}
-  - color: 0
-    value: 9
-    sprite: {fileID: 21300000, guid: e17895c4a287d2d4381c4f567d151d7c, type: 3}
-  - color: 0
-    value: 9
-    sprite: {fileID: 21300000, guid: e17895c4a287d2d4381c4f567d151d7c, type: 3}
+    sprite: {fileID: 21300000, guid: 1b529fd97b5b4a347bea148b66a90016, type: 3}
+  - color: 1
+    value: 10
+    sprite: {fileID: 21300000, guid: 34e39c37d3c8bdc409b6eb828a3b6536, type: 3}
+  - color: 1
+    value: 11
+    sprite: {fileID: 21300000, guid: ee92ac75db2cc2a45977b454d098e17b, type: 3}
+  - color: 1
+    value: 12
+    sprite: {fileID: 21300000, guid: 2963510397b99044b94c0d6689ad3461, type: 3}
+  - color: 4
+    value: 13
+    sprite: {fileID: 21300000, guid: 530f56af4023b9e47be9bee8e69e9eb6, type: 3}
+  - color: 4
+    value: 14
+    sprite: {fileID: 21300000, guid: e0a28a99a79bfe84d85de297856d53c9, type: 3}
+  - color: 4
+    value: 14
+    sprite: {fileID: 21300000, guid: e0a28a99a79bfe84d85de297856d53c9, type: 3}
   cardBackSprite: {fileID: 21300000, guid: 1acd332edf88d2146b82dee670b9f24a, type: 3}
