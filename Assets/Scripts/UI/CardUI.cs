@@ -10,10 +10,12 @@ using UnityEngine.EventSystems;
 /// The Image component on this same GameObject will be set to the card's sprite.
 /// </summary>
 [RequireComponent(typeof(Image))]
-public class CardUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
+public class CardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     /// <summary>The card data this visual represents.</summary>
     public CardData Card { get; private set; }
+
+    public event System.Action<CardData> CardClicked;
 
     private Image image;
     private RectTransform rectTransform;
@@ -44,6 +46,11 @@ public class CardUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
     public void OnPointerExit(PointerEventData eventData)
     {
         isHovered = false;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        CardClicked?.Invoke(Card);
     }
 
     void Update()

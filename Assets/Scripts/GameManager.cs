@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     
     /// <summary>Reference to the CardManager on this same GameObject.</summary>
     private CardManager cardManager;
+    private TurnManager turnManager;
     
     private void Awake()
     {
@@ -25,6 +26,7 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
         cardManager = GetComponent<CardManager>();
+        turnManager = GetComponent<TurnManager>();
     }
     
     /// <summary>
@@ -44,6 +46,24 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogError("GameManager: CardManager component not found on this GameObject!");
+        }
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            if (turnManager == null)
+            {
+                turnManager = FindObjectOfType<TurnManager>();
+            }
+
+            if (turnManager != null)
+            {
+                var clientIds = new List<ulong>(NetworkManager.Singleton.ConnectedClientsIds);
+                turnManager.InitializeTurnOrder(clientIds);
+            }
+            else
+            {
+                Debug.LogWarning("GameManager: TurnManager not found in scene.");
+            }
         }
     }
     

@@ -175,4 +175,7 @@ MonoBehaviour:
   - color: 4
     value: 14
     sprite: {fileID: 21300000, guid: e0a28a99a79bfe84d85de297856d53c9, type: 3}
+  - color: 4
+    value: 14
+    sprite: {fileID: 21300000, guid: e0a28a99a79bfe84d85de297856d53c9, type: 3}
   cardBackSprite: {fileID: 21300000, guid: 1acd332edf88d2146b82dee670b9f24a, type: 3}

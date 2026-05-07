@@ -13,7 +13,7 @@ public class SessionPlayerListUI : MonoBehaviour
     
     [Header("UI Elements to Hide When All Ready")]
     [SerializeField] private GameObject[] elementsToHideWhenReady = new GameObject[3];
-    
+
     private bool hasCheckedReady = false;
 
     private void Awake()
@@ -53,6 +53,7 @@ public class SessionPlayerListUI : MonoBehaviour
         {
             AddPlayer(client.ClientId);
         }
+
     }
     
     private void Update()
@@ -120,6 +121,12 @@ public class SessionPlayerListUI : MonoBehaviour
         text.color = Color.white;
 
         playerNameTexts[clientId] = text;
+
+        var localTurnManager = FindObjectOfType<TurnManager>();
+        if (localTurnManager != null)
+        {
+            localTurnManager.RegisterPlayerNameText(clientId, text);
+        }
     }
 
     private NetworkPlayerController FindPlayerController(ulong clientId)
@@ -138,6 +145,12 @@ public class SessionPlayerListUI : MonoBehaviour
         {
             Destroy(text.transform.root.gameObject);
             playerNameTexts.Remove(clientId);
+        }
+
+        var localTurnManager = FindObjectOfType<TurnManager>();
+        if (localTurnManager != null)
+        {
+            localTurnManager.UnregisterPlayerNameText(clientId);
         }
     }
 

@@ -31,6 +31,9 @@ public class CardManager : NetworkBehaviour
     [Tooltip("Parent transform for the local player's hand cards (e.g. a HorizontalLayoutGroup).")]
     [SerializeField] private Transform handContainer;
 
+    [Header("Turn Management")]
+    [SerializeField] private TurnManager turnManager;
+
     // ─── Server-only state ────────────────────────────────────────────
     private List<CardData> drawPile = new();
     private List<CardData> discardPile = new();
@@ -50,6 +53,14 @@ public class CardManager : NetworkBehaviour
 
     /// <summary>Currently instantiated card GameObjects in the hand.</summary>
     private readonly List<GameObject> handCardObjects = new();
+
+    private void Awake()
+    {
+        if (turnManager == null)
+        {
+            turnManager = FindObjectOfType<TurnManager>();
+        }
+    }
 
     // ─── Lifecycle ────────────────────────────────────────────────────
 
@@ -140,6 +151,63 @@ public class CardManager : NetworkBehaviour
         if (playerHands.TryGetValue(clientId, out var hand))
             return hand.Count;
         return 0;
+    }
+
+    // ─── Play Card Flow ──────────────────────────────────────────────
+
+    private void HandleLocalCardClicked(CardData card)
+    {
+        if (LocalHand.Count == 0)
+            return;
+
+        if (turnManager != null && !turnManager.IsLocalPlayersTurn())
+            return;
+
+        PlayCardServerRpc(card);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void PlayCardServerRpc(CardData card, ServerRpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+
+        if (turnManager != null && !turnManager.IsPlayersTurn(clientId))
+            return;
+
+        if (!playerHands.TryGetValue(clientId, out var hand))
+            return;
+
+        if (!IsPlayValid(card, TopDiscard.Value))
+            return;
+
+        if (!TryRemoveCardFromHand(hand, card))
+            return;
+
+        discardPile.Add(card);
+        TopDiscard.Value = card;
+
+        SendHandToClient(clientId);
+        UpdatePlayerCardCount(clientId);
+
+        if (turnManager != null)
+        {
+            turnManager.AdvanceTurn();
+        }
+    }
+
+    private bool TryRemoveCardFromHand(List<CardData> hand, CardData card)
+    {
+        int index = hand.FindIndex(c => c == card);
+        if (index < 0)
+            return false;
+
+        hand.RemoveAt(index);
+        return true;
+    }
+
+    private bool IsPlayValid(CardData card, CardData topDiscard)
+    {
+        return true;
     }
 
     // ─── Deck Building ────────────────────────────────────────────────
@@ -363,6 +431,7 @@ public class CardManager : NetworkBehaviour
             if (cardUI != null)
             {
                 cardUI.Setup(cardData, cardSpriteDatabase);
+                cardUI.CardClicked += HandleLocalCardClicked;
             }
             else
             {
