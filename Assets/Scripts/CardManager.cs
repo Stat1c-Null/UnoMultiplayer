@@ -143,6 +143,19 @@ public class CardManager : NetworkBehaviour
         return card;
     }
 
+    // ─── Draw Card Request (Client -> Server) ───────────────────────
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestDrawCardServerRpc(ServerRpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+
+        if (turnManager != null && !turnManager.IsPlayersTurn(clientId))
+            return;
+
+        DrawCard(clientId);
+    }
+
     /// <summary>
     /// Returns how many cards a player holds. For server use.
     /// </summary>
