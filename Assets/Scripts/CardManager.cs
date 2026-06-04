@@ -20,6 +20,12 @@ public class CardManager : NetworkBehaviour
     /// <summary>Fired on every client when the top discard card changes.</summary>
     public event Action<CardData> OnTopDiscardChanged;
 
+    /// <summary>
+    /// Fired on every client when a player wins by emptying their hand.
+    /// Args: winner's client id, winner's display name.
+    /// </summary>
+    public event Action<ulong, string> OnGameWon;
+
     // ─── Card Visuals (assign in Inspector) ───────────────────────────
     [Header("Card Visuals")]
     [Tooltip("ScriptableObject that maps every CardData to its sprite.")]
@@ -38,6 +44,9 @@ public class CardManager : NetworkBehaviour
     private List<CardData> drawPile = new();
     private List<CardData> discardPile = new();
     private Dictionary<ulong, List<CardData>> playerHands = new();
+
+    /// <summary>Set true once a player has won; blocks further draws/plays.</summary>
+    private bool gameOver;
 
     // ─── Synced state ─────────────────────────────────────────────────
     /// <summary>The face-up card on the discard pile, visible to everyone.</summary>
@@ -148,6 +157,9 @@ public class CardManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void RequestDrawCardServerRpc(ServerRpcParams rpcParams = default)
     {
+        if (gameOver)
+            return;
+
         ulong clientId = rpcParams.Receive.SenderClientId;
 
         if (turnManager != null && !turnManager.IsPlayersTurn(clientId))
@@ -182,6 +194,9 @@ public class CardManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void PlayCardServerRpc(CardData card, ServerRpcParams rpcParams = default)
     {
+        if (gameOver)
+            return;
+
         ulong clientId = rpcParams.Receive.SenderClientId;
 
         if (turnManager != null && !turnManager.IsPlayersTurn(clientId))
@@ -202,10 +217,55 @@ public class CardManager : NetworkBehaviour
         SendHandToClient(clientId);
         UpdatePlayerCardCount(clientId);
 
+        // Win condition: a player who plays their last card wins immediately.
+        if (hand.Count == 0)
+        {
+            DeclareWinner(clientId);
+            return;
+        }
+
         if (turnManager != null)
         {
             turnManager.AdvanceTurn();
         }
+    }
+
+    // ─── Win / Game Over ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Server-only. Marks the game as over and tells every client who won.
+    /// </summary>
+    private void DeclareWinner(ulong winnerClientId)
+    {
+        gameOver = true;
+
+        var controller = FindPlayerController(winnerClientId);
+        string winnerName = controller != null
+            ? controller.GetPlayerName()
+            : $"Player {winnerClientId}";
+
+        Debug.Log($"CardManager: Player {winnerClientId} ({winnerName}) emptied their hand and won the game!");
+        AnnounceWinnerClientRpc(winnerClientId, winnerName);
+    }
+
+    /// <summary>
+    /// Broadcast to all clients. Each client decides win/lose by comparing
+    /// the winner id to its own LocalClientId via the OnGameWon event.
+    /// </summary>
+    [ClientRpc]
+    private void AnnounceWinnerClientRpc(ulong winnerClientId, string winnerName)
+    {
+        OnGameWon?.Invoke(winnerClientId, winnerName);
+    }
+
+    private NetworkPlayerController FindPlayerController(ulong clientId)
+    {
+        foreach (var player in FindObjectsOfType<NetworkPlayerController>())
+        {
+            if (player.OwnerClientId == clientId)
+                return player;
+        }
+        return null;
     }
 
     private bool TryRemoveCardFromHand(List<CardData> hand, CardData card)
