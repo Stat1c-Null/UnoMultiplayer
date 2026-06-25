@@ -25,7 +25,10 @@ public class TurnManager : NetworkBehaviour
 
     private readonly List<ulong> turnOrder = new();
     private int currentIndex = -1;
+    private int direction = 1; // 1 = clockwise, -1 = counter-clockwise
     private readonly Dictionary<ulong, TextMeshProUGUI> playerNameTexts = new();
+
+    public int PlayerCount => turnOrder.Count;
 
     public override void OnNetworkSpawn()
     {
@@ -62,6 +65,7 @@ public class TurnManager : NetworkBehaviour
         turnOrder.AddRange(clientIds);
         ShuffleTurnOrder();
 
+        direction = 1;
         currentIndex = 0;
         CurrentTurnClientId.Value = turnOrder[currentIndex];
         Debug.Log($"TurnManager: First turn is client {CurrentTurnClientId.Value}.");
@@ -81,9 +85,39 @@ public class TurnManager : NetworkBehaviour
             return;
         }
 
-        currentIndex = (currentIndex + 1) % turnOrder.Count;
+        currentIndex = ((currentIndex + direction) % turnOrder.Count + turnOrder.Count) % turnOrder.Count;
         CurrentTurnClientId.Value = turnOrder[currentIndex];
         Debug.Log($"TurnManager: Turn advanced to client {CurrentTurnClientId.Value}.");
+    }
+
+    /// <summary>Flips the play direction. Server only.</summary>
+    public void ReverseDirection()
+    {
+        direction *= -1;
+        Debug.Log($"TurnManager: Direction reversed to {direction}.");
+    }
+
+    /// <summary>
+    /// Advances the turn by two steps in the current direction, skipping the next player.
+    /// Server only.
+    /// </summary>
+    public void SkipNextPlayer()
+    {
+        if (turnOrder.Count == 0) return;
+        currentIndex = ((currentIndex + direction * 2) % turnOrder.Count + turnOrder.Count) % turnOrder.Count;
+        CurrentTurnClientId.Value = turnOrder[currentIndex];
+        Debug.Log($"TurnManager: Next player skipped. Turn is now client {CurrentTurnClientId.Value}.");
+    }
+
+    /// <summary>
+    /// Returns the clientId that would play next without advancing the turn.
+    /// Used to target Draw Two / Wild Draw Four effects. Server only.
+    /// </summary>
+    public ulong GetNextClientId()
+    {
+        if (turnOrder.Count == 0) return 0;
+        int next = ((currentIndex + direction) % turnOrder.Count + turnOrder.Count) % turnOrder.Count;
+        return turnOrder[next];
     }
 
     public bool IsPlayersTurn(ulong clientId)

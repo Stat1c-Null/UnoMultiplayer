@@ -56,6 +56,17 @@ public class CardManager : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    /// <summary>
+    /// The color that must be matched to play a non-wild card.
+    /// Separate from TopDiscard.Color because Wild cards have CardColor.Wild;
+    /// when a Wild is played the active color stays unchanged.
+    /// </summary>
+    public NetworkVariable<CardColor> ActiveColor = new(
+        CardColor.Red,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     // ─── Local client state ───────────────────────────────────────────
     /// <summary>The local player's hand (populated via ClientRpc).</summary>
     public List<CardData> LocalHand { get; private set; } = new();
@@ -214,6 +225,10 @@ public class CardManager : NetworkBehaviour
         discardPile.Add(card);
         TopDiscard.Value = card;
 
+        // Update active color; Wilds keep the color that was already in play.
+        if (!card.IsWild)
+            ActiveColor.Value = card.Color;
+
         SendHandToClient(clientId);
         UpdatePlayerCardCount(clientId);
 
@@ -224,9 +239,40 @@ public class CardManager : NetworkBehaviour
             return;
         }
 
-        if (turnManager != null)
+        if (turnManager == null)
+            return;
+
+        switch (card.Value)
         {
-            turnManager.AdvanceTurn();
+            case CardValue.Skip:
+                turnManager.SkipNextPlayer();
+                break;
+
+            case CardValue.Reverse:
+                turnManager.ReverseDirection();
+                // In a 2-player game Reverse acts as a Skip (current player goes again).
+                if (turnManager.PlayerCount == 2)
+                    turnManager.SkipNextPlayer();
+                else
+                    turnManager.AdvanceTurn();
+                break;
+
+            case CardValue.DrawTwo:
+                ulong drawTwoTarget = turnManager.GetNextClientId();
+                DrawCard(drawTwoTarget);
+                DrawCard(drawTwoTarget);
+                turnManager.SkipNextPlayer();
+                break;
+
+            case CardValue.WildDrawFour:
+                ulong drawFourTarget = turnManager.GetNextClientId();
+                for (int i = 0; i < 4; i++) DrawCard(drawFourTarget);
+                turnManager.SkipNextPlayer();
+                break;
+
+            default:
+                turnManager.AdvanceTurn();
+                break;
         }
     }
 
@@ -280,7 +326,10 @@ public class CardManager : NetworkBehaviour
 
     private bool IsPlayValid(CardData card, CardData topDiscard)
     {
-        return true;
+        if (card.IsWild)
+            return true;
+
+        return card.Color == ActiveColor.Value || card.Value == topDiscard.Value;
     }
 
     // ─── Deck Building ────────────────────────────────────────────────
@@ -401,6 +450,7 @@ public class CardManager : NetworkBehaviour
 
             discardPile.Add(topCard);
             TopDiscard.Value = topCard;
+            ActiveColor.Value = topCard.Color;
             Debug.Log($"CardManager: First discard card is {topCard}.");
             return;
         }
