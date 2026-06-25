@@ -34,11 +34,16 @@ public class CardSpriteDatabase : ScriptableObject
     {
         BuildLookupIfNeeded();
 
-        if (_lookup.TryGetValue((card.Color, card.Value), out Sprite sprite))
+        if (_lookup.TryGetValue((card.Color, card.Value), out Sprite sprite) && sprite != null)
             return sprite;
 
-        Debug.LogWarning($"CardSpriteDatabase: No sprite found for {card}. Using fallback.");
-        return cardBackSprite;
+        Debug.LogWarning($"CardSpriteDatabase: No sprite found for {card}. Using first available.");
+        foreach (var entry in entries)
+        {
+            if (entry.sprite != null)
+                return entry.sprite;
+        }
+        return null;
     }
 
     /// <summary>
