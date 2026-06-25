@@ -26,6 +26,12 @@ public class CardManager : NetworkBehaviour
     /// </summary>
     public event Action<ulong, string> OnGameWon;
 
+    /// <summary>
+    /// Fired on the LOCAL client that played a Wild card, signalling it should
+    /// show the color picker. Other clients do not receive this event.
+    /// </summary>
+    public event Action OnWildCardPlayed;
+
     // ─── Card Visuals (assign in Inspector) ───────────────────────────
     [Header("Card Visuals")]
     [Tooltip("ScriptableObject that maps every CardData to its sprite.")]
@@ -47,6 +53,11 @@ public class CardManager : NetworkBehaviour
 
     /// <summary>Set true once a player has won; blocks further draws/plays.</summary>
     private bool gameOver;
+
+    // Tracks a played Wild/Wild Draw Four waiting for the playing client to pick a color.
+    private bool awaitingWildColor;
+    private ulong wildPlayerId;
+    private CardValue pendingWildValue;
 
     // ─── Synced state ─────────────────────────────────────────────────
     /// <summary>The face-up card on the discard pile, visible to everyone.</summary>
@@ -168,7 +179,7 @@ public class CardManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void RequestDrawCardServerRpc(ServerRpcParams rpcParams = default)
     {
-        if (gameOver)
+        if (gameOver || awaitingWildColor)
             return;
 
         ulong clientId = rpcParams.Receive.SenderClientId;
@@ -205,7 +216,7 @@ public class CardManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void PlayCardServerRpc(CardData card, ServerRpcParams rpcParams = default)
     {
-        if (gameOver)
+        if (gameOver || awaitingWildColor)
             return;
 
         ulong clientId = rpcParams.Receive.SenderClientId;
@@ -264,14 +275,64 @@ public class CardManager : NetworkBehaviour
                 turnManager.SkipNextPlayer();
                 break;
 
+            case CardValue.WildCard:
             case CardValue.WildDrawFour:
-                ulong drawFourTarget = turnManager.GetNextClientId();
-                for (int i = 0; i < 4; i++) DrawCard(drawFourTarget);
-                turnManager.SkipNextPlayer();
+                BeginWildColorSelection(clientId, card.Value);
                 break;
 
             default:
                 turnManager.AdvanceTurn();
+                break;
+        }
+    }
+
+    // ─── Wild Color Selection ────────────────────────────────────────
+
+    private void BeginWildColorSelection(ulong playerId, CardValue wildValue)
+    {
+        awaitingWildColor = true;
+        wildPlayerId = playerId;
+        pendingWildValue = wildValue;
+
+        ClientRpcParams target = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { playerId } }
+        };
+        ShowWildColorPickerClientRpc(target);
+    }
+
+    [ClientRpc]
+    private void ShowWildColorPickerClientRpc(ClientRpcParams _ = default)
+    {
+        OnWildCardPlayed?.Invoke();
+    }
+
+    /// <summary>
+    /// Called by the local player after picking a color from the UI.
+    /// The server validates the sender, sets the active color, then applies
+    /// the wild card's effect and advances the turn.
+    /// </summary>
+    [ServerRpc(RequireOwnership = false)]
+    public void SelectWildColorServerRpc(CardColor color, ServerRpcParams rpcParams = default)
+    {
+        if (!awaitingWildColor) return;
+        if (rpcParams.Receive.SenderClientId != wildPlayerId) return;
+        if (color == CardColor.Wild) return;
+
+        awaitingWildColor = false;
+        ActiveColor.Value = color;
+
+        if (turnManager == null) return;
+
+        switch (pendingWildValue)
+        {
+            case CardValue.WildCard:
+                turnManager.AdvanceTurn();
+                break;
+            case CardValue.WildDrawFour:
+                ulong target = turnManager.GetNextClientId();
+                for (int i = 0; i < 4; i++) DrawCard(target);
+                turnManager.SkipNextPlayer();
                 break;
         }
     }
@@ -284,6 +345,7 @@ public class CardManager : NetworkBehaviour
     private void DeclareWinner(ulong winnerClientId)
     {
         gameOver = true;
+        awaitingWildColor = false;
 
         var controller = FindPlayerController(winnerClientId);
         string winnerName = controller != null
