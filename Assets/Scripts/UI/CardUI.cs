@@ -23,7 +23,7 @@ public class CardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, 
     private float baseY;
 
     public float speed = 10f;
-    public float height = 20f;
+    public float height = 260f;
     public Vector3 originalPosition;
 
     private void Awake()
